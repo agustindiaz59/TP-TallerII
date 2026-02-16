@@ -1,0 +1,377 @@
+﻿using Gestion_Gym.Modelos;
+using Gestion_Gym.Servicios;
+using Gestion_Gym.Servicios.Persistencia;
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace Gestion_Gym
+{
+    public partial class Nuevo_Personal : Form
+    {
+        // Acceso a la base de datos
+        private PersonalDAO personalDAO = new PersonalDAO();
+
+        public Nuevo_Personal()
+        {
+            InitializeComponent();
+            txtNombre.Focus();
+            dateTimePickerFNacim.MaxDate = DateTime.Now.AddMinutes(1);
+            //sdateTimePickerFIngreso.MaxDate = DateTime.Now;
+        }
+
+        protected virtual void btnGuardar_Click(object sender, EventArgs e)
+        {
+            // 1) Tomar valores
+            string nombre = txtNombre.Text.Trim();
+            string apellido = txtApellido.Text.Trim();
+            string cuil = textBox1.Text.Trim();
+
+            char genero = radioButtonMasculino.Checked ? 'M' : 'F';
+
+            string fnacim = dateTimePickerFNacim.Text.Trim();
+            string telefono = txtTelefono.Text.Trim();
+            string email = txtEmail.Text.Trim();
+            string fingreso = dateTimePickerFIngreso.Text.Trim();
+
+            string calle = txtCalle.Text.Trim();
+            string localidad = txtLocalidad.Text.Trim();
+            string provincia = txtProvincia.Text.Trim();
+            string direccion = $"{calle}, {localidad}, {provincia}";
+
+            // 2) Validaciones
+            bool validarDatos =
+                Validacion.ValidarCadenaEstandar(nombre, "Nombre");
+            bool val8 =
+                Validacion.ValidarCadenaEstandar(apellido, "Apellido");
+            bool val2 =
+                Validacion.ValidarCuil(cuil, "Cuil");
+            bool val5 =
+                Validacion.ValidarFecha(fnacim, "Fecha de nacimiento");
+            bool val3 =
+                Validacion.ValidarCelular(telefono, "Telefono");
+            bool val6 =
+                Validacion.ValidarEmail(email, "Email");
+            bool val4 =
+                Validacion.ValidarFecha(fingreso, "Fecha de ingreso");
+
+            //MessageBox.Show(
+            //    nombre + Validacion.ValidarCadenaEstandar(nombre) +
+            //    apellido + Validacion.ValidarCadenaEstandar(apellido) +
+            //    cuil + Validacion.ValidarCuil(cuil) +
+            //    fnacim + Validacion.ValidarFecha(fnacim) +
+            //    telefono + Validacion.ValidarCelular(telefono) +
+            //    email + Validacion.ValidarEmail(email) +
+            //    fingreso + Validacion.ValidarFecha(fingreso) +
+            //    direccion + Validacion.ValidarCadenaEstandar(direccion) 
+            //    );
+
+            if (validarDatos && val2 && val3 && val4 && val5 && val6 && val8)
+            {
+                //GuardarPersonal();
+
+                // 3) Construir entidad
+                var nuevo = new Personal(
+                    nombre,
+                    apellido,
+                    cuil,
+                    fnacim,
+                    genero,
+                    telefono,
+                    email,
+                    direccion,
+                    fingreso
+                );
+
+                // 4) Guardar con control de duplicado (PersonalDAO.Guardar devuelve 0 si CUIL existe)
+                try
+                {
+                    int resultado = personalDAO.Guardar(nuevo);
+
+                    if (resultado > 0)
+                    {
+                        MessageBox.Show("Datos guardados correctamente.");
+                        LimpiarCampos();
+                    }
+                    else
+                    {
+                        MessageBox.Show("CUIL duplicado. No se guardaron los datos.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    //MessageBox.Show("Error al guardar: " + ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Verifique que los datos sean correctos");
+            }
+
+            
+        }
+
+        protected void btnReiniciar_Click(object sender, EventArgs e)
+        {
+            LimpiarCampos();
+        }
+
+
+        protected void LimpiarCampos()
+        {
+            txtNombre.Clear();
+            txtApellido.Clear();
+            textBox1.Clear();
+
+            radioButtonMasculino.Checked = false;
+            radioButtonFemenino.Checked = false;
+
+            txtTelefono.Clear();
+            txtEmail.Clear();
+
+            txtCalle.Clear();
+            txtLocalidad.Clear();
+            txtProvincia.Clear();
+
+            dateTimePickerFNacim.Value = DateTime.Now;
+            dateTimePickerFIngreso.Value = DateTime.Now;
+
+            txtNombre.Focus();
+        }
+
+        protected void txtNombre_TextChanged(object sender, EventArgs e)
+        {
+            txtTelefono.SuspendLayout();
+            txtTelefono.ResumeLayout();
+        }
+
+        protected void dateTimePickerFNacim_ValueChanged(object sender, EventArgs e)
+        {
+            txtTelefono.SuspendLayout();
+            txtTelefono.ResumeLayout();
+        }
+
+        private void label13_Click(object sender, EventArgs e) { }
+
+        protected void nombre_enter(object sender, EventArgs e)
+        {
+            if (txtNombre.Text == "Nombre")
+            {
+                txtNombre.Text = "";
+                txtNombre.ForeColor = Color.Black;
+            }
+        }
+
+        protected void nombre_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtNombre.Text))
+            {
+                txtNombre.Text = "Nombre";
+                txtNombre.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void apellido_enter(object sender, EventArgs e)
+        {
+            if (txtApellido.Text == "Apellido")
+            {
+                txtApellido.Text = "";
+                txtApellido.ForeColor = Color.Black;
+            }
+        }
+
+        protected void apellido_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtApellido.Text))
+            {
+                txtApellido.Text = "Apellido";
+                txtApellido.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void cuil_enter(object sender, EventArgs e)
+        {
+            if (textBox1.Text == "Ingrese su CUIL")
+            {
+                textBox1.Text = "";
+                textBox1.ForeColor = Color.Black;
+            }
+        }
+
+        protected void cuil_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(textBox1.Text))
+            {
+                textBox1.Text = "Ingrese su CUIL";
+                textBox1.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void telefono_enter(object sender, EventArgs e)
+        {
+            if (txtTelefono.Text == "Ingrese su teléfono")
+            {
+                txtTelefono.Text = "";
+                txtTelefono.ForeColor = Color.Black;
+            }
+        }
+
+        protected void telefono_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtTelefono.Text))
+            {
+                txtTelefono.Text = "Ingrese su teléfono";
+                txtTelefono.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void email_enter(object sender, EventArgs e)
+        {
+            if (txtEmail.Text == "correo@ejemplo.com")
+            {
+                txtEmail.Text = "";
+                txtEmail.ForeColor = Color.Black;
+            }
+        }
+
+        protected void email_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtEmail.Text))
+            {
+                txtEmail.Text = "correo@ejemplo.com";
+                txtEmail.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void calle_enter(object sender, EventArgs e)
+        {
+            if (txtCalle.Text == "Ingrese su calle")
+            {
+                txtCalle.Text = "";
+                txtCalle.ForeColor = Color.Black;
+            }
+        }
+
+        protected void calle_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtCalle.Text))
+            {
+                txtCalle.Text = "Ingrese su calle";
+                txtCalle.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void localidad_enter(object sender, EventArgs e)
+        {
+            if (txtLocalidad.Text == "Ingrese su localidad")
+            {
+                txtLocalidad.Text = "";
+                txtLocalidad.ForeColor = Color.Black;
+            }
+        }
+
+        protected void localidad_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtLocalidad.Text))
+            {
+                txtLocalidad.Text = "Ingrese su localidad";
+                txtLocalidad.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void Provincia_enter(object sender, EventArgs e)
+        {
+            if (txtProvincia.Text == "Ingrese su provincia")
+            {
+                txtProvincia.Text = "";
+                txtProvincia.ForeColor = Color.Black;
+            }
+        }
+
+        protected void Provincia_leave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(txtProvincia.Text))
+            {
+                txtProvincia.Text = "Ingrese su provincia";
+                txtProvincia.ForeColor = Color.Silver;
+            }
+        }
+
+        protected void Nuevo_Personal_Load(object sender, EventArgs e)
+        {
+            txtNombre.Focus();
+        }
+
+
+        protected void Nuevo_Personal_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // Si este formulario es modal, simplemente cerralo.
+            // Si es el principal, podés dejar Application.Exit();
+            // Application.Exit(); // Evitar cerrar toda la app si no corresponde
+        }
+        protected Boolean ValidarFecha(DateTimePicker Fecha)
+        {
+            if (Fecha.Value < DateTime.Now)
+            {
+                MessageBox.Show("Fecha demasiado antigua");
+                return false;
+            }
+            return true;
+        }
+        protected void GuardarPersonal()
+        {
+            string nombre = txtNombre.Text;
+            string apellido = txtApellido.Text;
+
+
+            string genero = "";
+            bool ischecked = radioButtonMasculino.Checked;
+
+            if (ischecked)
+            {
+                genero = radioButtonMasculino.Text;
+            }
+            else
+            {
+                genero = radioButtonFemenino.Text;
+            }
+            string fnacim = dateTimePickerFNacim.Text;
+            string telefono = txtTelefono.Text;
+            string email = txtEmail.Text;
+            string fingreso = dateTimePickerFIngreso.Text;
+            string calle = txtCalle.Text;
+            string localidad = txtLocalidad.Text;
+            string provincia = txtProvincia.Text;
+
+            string direccion = calle + "," + localidad + "," + provincia;
+
+            string cuil = textBox1.Text;
+
+            Personal nuevo = new Personal(
+                nombre,
+                apellido,
+                cuil,
+                fnacim,
+                genero.ToCharArray()[0],
+                telefono,
+                email,
+                direccion,
+                fingreso
+                );
+
+            personalDAO.Guardar(nuevo);
+
+            MessageBox.Show("Datos Guardados Correctamente.");
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtApellido_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
